@@ -13,6 +13,21 @@
       <p class="text-md text-gray-600">Scouting & Weekly Performance Entry</p>
     </div>
 
+    <!-- INSTRUCTIONS -->
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-6 rounded">
+      <h2 class="font-bold mb-2">Instructions for Scouts & Coaches</h2>
+      <ul class="list-disc pl-5 text-sm space-y-1">
+        <li>Select the correct <strong>Center</strong> to filter and access relevant players.</li>
+        <li>If a player is not listed, use the <strong>"Add New Player"</strong> section to register them with exact details.</li>
+        <li>Always use the same <strong>Name and Date of Birth</strong> for each player — this ensures accurate tracking of progress over time.</li>
+        <li>Select the correct <strong>Week (Date of Report)</strong> — this is critical for trend analysis.</li>
+        <li>Grade each attribute from <strong>A (Excellent)</strong> to <strong>F (Poor)</strong> based on weekly performance.</li>
+        <li>Enter the <strong>Yo-Yo Test Score</strong> as a number (e.g., 15.2). The system will auto-grade it.</li>
+        <li>Use the <strong>Remarks</strong> field for key observations.</li>
+        <li><strong>Only submit one report per player per week.</strong></li>
+      </ul>
+    </div>
+
     <!-- CENTER SELECTION -->
     <div class="mb-6">
       <label class="font-semibold block mb-1">Select Center</label>
@@ -67,12 +82,12 @@
         <input type="text" id="yoyoScore" class="w-full p-2 border rounded" />
       </div>
 
+      <div class="grid grid-cols-2 gap-4" id="attributes"></div>
+
       <div>
         <label class="block font-semibold">Remarks</label>
         <textarea id="remarks" class="w-full p-2 border rounded" rows="3"></textarea>
       </div>
-
-      <div class="grid grid-cols-2 gap-4" id="attributes"></div>
 
       <button type="submit" class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">Submit Weekly Report</button>
       <p id="result" class="text-green-600 font-semibold hidden">Report submitted successfully!</p>
@@ -102,7 +117,6 @@
     centerSelect.addEventListener("change", async () => {
       const center = centerSelect.value;
       const { data: players } = await supabase.from("players").select("*").eq("center", center).order("name", { ascending: true });
-
       playerSelect.innerHTML = `<option value="">Select Player</option>`;
       players.forEach(p => {
         const option = document.createElement("option");
@@ -126,10 +140,9 @@
       const position = document.getElementById("newPosition").value.trim();
       const center = document.getElementById("newCenter").value.trim();
       if (!name || !dob || !position || !center) return alert("All new player fields are required");
-
       const { error } = await supabase.from("players").insert([{ name, dob, position, center }]);
       if (error) return alert("Error adding player: " + error.message);
-      alert("Player added! Now select center again.");
+      alert("Player added! Select the center again to see updated list.");
     });
 
     document.getElementById("scoutingForm").addEventListener("submit", async (e) => {
