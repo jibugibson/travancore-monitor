@@ -7,9 +7,13 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
   <div class="max-w-3xl mx-auto mt-10 p-6 bg-white rounded shadow">
-    <h1 class="text-3xl font-bold text-blue-900 mb-4">Player Scouting Form</h1>
+    <div class="text-center mb-6">
+      <img src="assets/club-logo.png" alt="Travancore Royals FC" class="w-24 mx-auto mb-2">
+      <h1 class="text-3xl font-bold text-blue-900">Travancore Royals FC</h1>
+      <p class="text-md text-gray-600">Player Scouting & Performance Monitoring Form</p>
+    </div>
+
     <form id="scoutingForm" class="space-y-4">
-      
       <div>
         <label for="playerName" class="block font-semibold">Player Name</label>
         <input type="text" id="playerName" class="w-full p-2 border rounded" required />
@@ -25,6 +29,11 @@
         <input type="text" id="position" class="w-full p-2 border rounded" required />
       </div>
 
+      <div>
+        <label for="weekDate" class="block font-semibold">Week (Date of Report)</label>
+        <input type="date" id="weekDate" class="w-full p-2 border rounded" required />
+      </div>
+
       <hr class="my-4" />
       <h2 class="text-xl font-bold">Attribute Ratings (A–F)</h2>
 
@@ -34,7 +43,7 @@
 
       <div>
         <label for="yoyoScore" class="block font-semibold">Yo-Yo Test Score</label>
-        <input type="text" id="yoyoScore" class="w-full p-2 border rounded" />
+        <input type="text" id="yoyoScore" class="w-full p-2 border rounded" required />
       </div>
 
       <div>
@@ -46,6 +55,7 @@
         Submit Scouting Report
       </button>
     </form>
+
     <p id="result" class="mt-4 text-green-600 font-semibold hidden">Report submitted successfully!</p>
   </div>
 
@@ -84,42 +94,81 @@
     document.getElementById("scoutingForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const name = document.getElementById("playerName").value;
+      const name = document.getElementById("playerName").value.trim();
       const dob = document.getElementById("dob").value;
-      const position = document.getElementById("position").value;
-      const remarks = document.getElementById("remarks").value;
-      const yoyoScore = document.getElementById("yoyoScore").value;
+      const position = document.getElementById("position").value.trim();
+      const remarks = document.getElementById("remarks").value.trim();
+      const yoyoScoreRaw = document.getElementById("yoyoScore").value.trim();
+      const weekDate = document.getElementById("weekDate").value;
 
-      const ratings = {};
-      document.querySelectorAll(".rating").forEach(select => {
-        const attr = select.getAttribute("data-attr");
-        ratings[attr] = select.value;
-      });
-
-      const grades = Object.values(ratings).filter(g => g);
-      const overall = grades.sort()[Math.floor(grades.length / 2)] || "N/A";
-
-      // Step 1: Insert into players table
-      const { data: player, error: playerError } = await supabase
-        .from("players")
-        .insert([{ name, dob, position }])
-        .select()
-        .single();
-
-      if (playerError) {
-        alert("Error adding player: " + playerError.message);
+      if (!weekDate) {
+        alert("Please select the week date of this report.");
         return;
       }
 
-      // Step 2: Insert scouting report
+      const yoyoScore = parseFloat(yoyoScoreRaw);
+      if (isNaN(yoyoScore)) {
+        alert("Please enter a valid number for Yo-Yo Test Score.");
+        return;
+      }
+
+      // Grade Yo-Yo score
+      let yoyoGrade = "F";
+      if (yoyoScore >= 16.1) yoyoGrade = "A";
+      else if (yoyoScore >= 15.5) yoyoGrade = "B";
+      else if (yoyoScore >= 15.0) yoyoGrade = "C";
+      else if (yoyoScore >= 14.5) yoyoGrade = "D";
+      else if (yoyoScore >= 14.0) yoyoGrade = "E";
+
+      const ratings = { "Yo-Yo Test": yoyoGrade };
+      document.querySelectorAll(".rating").forEach(select => {
+        const attr = select.getAttribute("data-attr");
+        if (select.value) ratings[attr] = select.value;
+      });
+
+      const grades = Object.values(ratings).filter(g => g);
+      const sorted = [...grades].sort();
+      const overall = sorted[Math.floor(sorted.length / 2)] || "N/A";
+
+      // Check for existing player
+      const { data: existingPlayers, error: searchError } = await supabase
+        .from("players")
+        .select("*")
+        .eq("name", name)
+        .eq("dob", dob);
+
+      if (searchError) {
+        alert("Error checking existing players: " + searchError.message);
+        return;
+      }
+
+      let playerId;
+      if (existingPlayers.length > 0) {
+        playerId = existingPlayers[0].id;
+      } else {
+        const { data: player, error: playerError } = await supabase
+          .from("players")
+          .insert([{ name, dob, position }])
+          .select()
+          .single();
+
+        if (playerError) {
+          alert("Error adding player: " + playerError.message);
+          return;
+        }
+
+        playerId = player.id;
+      }
+
       const { error: reportError } = await supabase
         .from("scouting_reports")
         .insert([{
-          player_id: player.id,
-          coach_id: null,  // Optional: add if using auth
+          player_id: playerId,
+          coach_id: null,
           ratings,
           overall_grade: overall,
-          remarks
+          remarks,
+          week_date: weekDate
         }]);
 
       if (reportError) {
