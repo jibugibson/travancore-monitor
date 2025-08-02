@@ -2,123 +2,151 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Player Scouting Form | Travancore Royals FC</title>
+  <title>Scouting | Travancore Royals FC</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
-  <div class="max-w-3xl mx-auto mt-10 p-6 bg-white rounded shadow">
+  <div class="max-w-4xl mx-auto mt-10 p-6 bg-white rounded shadow">
     <div class="text-center mb-6">
-      <img src="assets/club-logo.png" alt="Travancore Royals FC" class="w-24 mx-auto mb-2">
+      <img src="assets/club-logo.png" class="w-24 mx-auto mb-2" alt="Club Logo">
       <h1 class="text-3xl font-bold text-blue-900">Travancore Royals FC</h1>
-      <p class="text-md text-gray-600">Player Scouting & Performance Monitoring Form</p>
+      <p class="text-md text-gray-600">Scouting & Weekly Performance Entry</p>
     </div>
 
+    <!-- CENTER SELECTION -->
+    <div class="mb-6">
+      <label class="font-semibold block mb-1">Select Center</label>
+      <select id="centerSelect" class="w-full p-2 border rounded">
+        <option value="">Choose Center</option>
+        <option value="Ambalathara">Ambalathara</option>
+        <option value="Pangappara">Pangappara</option>
+        <option value="Nemom">Nemom</option>
+      </select>
+    </div>
+
+    <!-- EXISTING PLAYER -->
+    <div class="mb-6">
+      <label class="font-semibold block mb-1">Select Existing Player</label>
+      <select id="playerSelect" class="w-full p-2 border rounded">
+        <option value="">Select Center First</option>
+      </select>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div>
+        <label class="block font-semibold">Date of Birth</label>
+        <input type="date" id="dob" class="w-full p-2 border rounded bg-gray-100" readonly />
+      </div>
+      <div>
+        <label class="block font-semibold">Position</label>
+        <input type="text" id="position" class="w-full p-2 border rounded bg-gray-100" readonly />
+      </div>
+    </div>
+
+    <!-- ADD NEW PLAYER -->
+    <details class="mb-6 bg-blue-50 p-4 rounded border border-blue-300">
+      <summary class="font-semibold cursor-pointer mb-2">Add New Player</summary>
+      <div class="mt-4 grid grid-cols-2 gap-4">
+        <input type="text" id="newName" placeholder="Name" class="p-2 border rounded" />
+        <input type="date" id="newDob" placeholder="DOB" class="p-2 border rounded" />
+        <input type="text" id="newPosition" placeholder="Position" class="p-2 border rounded" />
+        <input type="text" id="newCenter" placeholder="Center" class="p-2 border rounded" />
+      </div>
+      <button id="addPlayerBtn" class="mt-4 bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">Add Player</button>
+    </details>
+
+    <!-- SCOUTING FORM -->
     <form id="scoutingForm" class="space-y-4">
       <div>
-        <label for="playerName" class="block font-semibold">Player Name</label>
-        <input type="text" id="playerName" class="w-full p-2 border rounded" required />
-      </div>
-
-      <div>
-        <label for="dob" class="block font-semibold">Date of Birth</label>
-        <input type="date" id="dob" class="w-full p-2 border rounded" required />
-      </div>
-
-      <div>
-        <label for="position" class="block font-semibold">Position</label>
-        <input type="text" id="position" class="w-full p-2 border rounded" required />
-      </div>
-
-      <div>
-        <label for="weekDate" class="block font-semibold">Week (Date of Report)</label>
+        <label class="block font-semibold">Week (Date of Report)</label>
         <input type="date" id="weekDate" class="w-full p-2 border rounded" required />
       </div>
 
-      <hr class="my-4" />
-      <h2 class="text-xl font-bold">Attribute Ratings (A–F)</h2>
-
-      <div id="attributes" class="grid grid-cols-2 gap-4">
-        <!-- Dynamically generated inputs -->
+      <div>
+        <label class="block font-semibold">Yo-Yo Test Score</label>
+        <input type="text" id="yoyoScore" class="w-full p-2 border rounded" />
       </div>
 
       <div>
-        <label for="yoyoScore" class="block font-semibold">Yo-Yo Test Score</label>
-        <input type="text" id="yoyoScore" class="w-full p-2 border rounded" required />
+        <label class="block font-semibold">Remarks</label>
+        <textarea id="remarks" class="w-full p-2 border rounded" rows="3"></textarea>
       </div>
 
-      <div>
-        <label for="remarks" class="block font-semibold">Remarks</label>
-        <textarea id="remarks" rows="3" class="w-full p-2 border rounded"></textarea>
-      </div>
+      <div class="grid grid-cols-2 gap-4" id="attributes"></div>
 
-      <button type="submit" class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
-        Submit Scouting Report
-      </button>
+      <button type="submit" class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">Submit Weekly Report</button>
+      <p id="result" class="text-green-600 font-semibold hidden">Report submitted successfully!</p>
     </form>
-
-    <p id="result" class="mt-4 text-green-600 font-semibold hidden">Report submitted successfully!</p>
   </div>
 
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    const supabase = createClient("https://sixwbibqadtvxiovdaqa.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpeHdiaWJxYWR0dnhpb3ZkYXFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxMTU5NDUsImV4cCI6MjA2OTY5MTk0NX0.N1kgsZZRQ8i0-zGTxq1UspDnA9GZzXSLAiX9oYbOf58");
 
-    const supabase = createClient(
-      "https://sixwbibqadtvxiovdaqa.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpeHdiaWJxYWR0dnhpb3ZkYXFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxMTU5NDUsImV4cCI6MjA2OTY5MTk0NX0.N1kgsZZRQ8i0-zGTxq1UspDnA9GZzXSLAiX9oYbOf58"
-    );
-
-    const ATTRIBUTES = [
-      "Speed", "Passing", "Shooting", "Vision",
-      "Tackling", "Stamina", "Dribbling", "Work Rate",
-      "Positioning", "Strength", "Team Play", "Aggression"
-    ];
-
+    const ATTRIBUTES = ["Speed", "Passing", "Shooting", "Vision", "Tackling", "Stamina", "Dribbling", "Work Rate", "Positioning", "Strength", "Team Play", "Aggression"];
     const attrContainer = document.getElementById("attributes");
     ATTRIBUTES.forEach(attr => {
-      const html = `
+      attrContainer.innerHTML += `
         <div>
           <label class="block font-medium">${attr}</label>
           <select data-attr="${attr}" class="rating w-full p-2 border rounded">
             <option value="">Select Grade</option>
-            <option>A</option>
-            <option>B</option>
-            <option>C</option>
-            <option>D</option>
-            <option>E</option>
-            <option>F</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option>
           </select>
         </div>`;
-      attrContainer.insertAdjacentHTML('beforeend', html);
+    });
+
+    const centerSelect = document.getElementById("centerSelect");
+    const playerSelect = document.getElementById("playerSelect");
+
+    centerSelect.addEventListener("change", async () => {
+      const center = centerSelect.value;
+      const { data: players } = await supabase.from("players").select("*").eq("center", center).order("name", { ascending: true });
+
+      playerSelect.innerHTML = `<option value="">Select Player</option>`;
+      players.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.id;
+        option.textContent = p.name;
+        option.dataset.dob = p.dob;
+        option.dataset.position = p.position;
+        playerSelect.appendChild(option);
+      });
+    });
+
+    playerSelect.addEventListener("change", () => {
+      const opt = playerSelect.options[playerSelect.selectedIndex];
+      document.getElementById("dob").value = opt.dataset.dob || "";
+      document.getElementById("position").value = opt.dataset.position || "";
+    });
+
+    document.getElementById("addPlayerBtn").addEventListener("click", async () => {
+      const name = document.getElementById("newName").value.trim();
+      const dob = document.getElementById("newDob").value;
+      const position = document.getElementById("newPosition").value.trim();
+      const center = document.getElementById("newCenter").value.trim();
+      if (!name || !dob || !position || !center) return alert("All new player fields are required");
+
+      const { error } = await supabase.from("players").insert([{ name, dob, position, center }]);
+      if (error) return alert("Error adding player: " + error.message);
+      alert("Player added! Now select center again.");
     });
 
     document.getElementById("scoutingForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+      const player_id = playerSelect.value;
+      const week_date = document.getElementById("weekDate").value;
+      const remarks = document.getElementById("remarks").value;
+      const yoyo = parseFloat(document.getElementById("yoyoScore").value.trim());
+      if (!player_id) return alert("Select a player");
+      if (!week_date) return alert("Week date required");
 
-      const name = document.getElementById("playerName").value.trim();
-      const dob = document.getElementById("dob").value;
-      const position = document.getElementById("position").value.trim();
-      const remarks = document.getElementById("remarks").value.trim();
-      const yoyoScoreRaw = document.getElementById("yoyoScore").value.trim();
-      const weekDate = document.getElementById("weekDate").value;
-
-      if (!weekDate) {
-        alert("Please select the week date of this report.");
-        return;
-      }
-
-      const yoyoScore = parseFloat(yoyoScoreRaw);
-      if (isNaN(yoyoScore)) {
-        alert("Please enter a valid number for Yo-Yo Test Score.");
-        return;
-      }
-
-      // Grade Yo-Yo score
       let yoyoGrade = "F";
-      if (yoyoScore >= 16.1) yoyoGrade = "A";
-      else if (yoyoScore >= 15.5) yoyoGrade = "B";
-      else if (yoyoScore >= 15.0) yoyoGrade = "C";
-      else if (yoyoScore >= 14.5) yoyoGrade = "D";
-      else if (yoyoScore >= 14.0) yoyoGrade = "E";
+      if (yoyo >= 16.1) yoyoGrade = "A";
+      else if (yoyo >= 15.5) yoyoGrade = "B";
+      else if (yoyo >= 15.0) yoyoGrade = "C";
+      else if (yoyo >= 14.5) yoyoGrade = "D";
+      else if (yoyo >= 14.0) yoyoGrade = "E";
 
       const ratings = { "Yo-Yo Test": yoyoGrade };
       document.querySelectorAll(".rating").forEach(select => {
@@ -126,57 +154,13 @@
         if (select.value) ratings[attr] = select.value;
       });
 
-      const grades = Object.values(ratings).filter(g => g);
-      const sorted = [...grades].sort();
-      const overall = sorted[Math.floor(sorted.length / 2)] || "N/A";
+      const sorted = Object.values(ratings).sort();
+      const overall = sorted[Math.floor(sorted.length / 2)];
 
-      // Check for existing player
-      const { data: existingPlayers, error: searchError } = await supabase
-        .from("players")
-        .select("*")
-        .eq("name", name)
-        .eq("dob", dob);
-
-      if (searchError) {
-        alert("Error checking existing players: " + searchError.message);
-        return;
-      }
-
-      let playerId;
-      if (existingPlayers.length > 0) {
-        playerId = existingPlayers[0].id;
-      } else {
-        const { data: player, error: playerError } = await supabase
-          .from("players")
-          .insert([{ name, dob, position }])
-          .select()
-          .single();
-
-        if (playerError) {
-          alert("Error adding player: " + playerError.message);
-          return;
-        }
-
-        playerId = player.id;
-      }
-
-      const { error: reportError } = await supabase
-        .from("scouting_reports")
-        .insert([{
-          player_id: playerId,
-          coach_id: null,
-          ratings,
-          overall_grade: overall,
-          remarks,
-          week_date: weekDate
-        }]);
-
-      if (reportError) {
-        alert("Error submitting report: " + reportError.message);
-      } else {
-        document.getElementById("result").classList.remove("hidden");
-        document.getElementById("scoutingForm").reset();
-      }
+      const { error } = await supabase.from("scouting_reports").insert([{ player_id, week_date, ratings, overall_grade: overall, remarks }]);
+      if (error) return alert("Error submitting report: " + error.message);
+      document.getElementById("result").classList.remove("hidden");
+      e.target.reset();
     });
   </script>
 </body>
