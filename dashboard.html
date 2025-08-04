@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title> Player Dashboard | Travancore Royals FC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+  <div class="max-w-6xl mx-auto p-6">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <img src="assets/club-logo.png" class="w-20 mx-auto mb-2" alt="Club Logo" />
+      <h1 class="text-3xl font-bold text-blue-900"> Player Performance Dashboard</h1>
+      <p class="text-sm text-gray-600">Travancore Royals FC</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div>
+        <label class="block font-semibold">Select Center</label>
+        <select id="centerFilter" class="w-full p-2 border rounded"></select>
+      </div>
+      <div>
+        <label class="block font-semibold">Select Player</label>
+        <select id="playerFilter" class="w-full p-2 border rounded">
+          <option value="">Select Center First</option>
+        </select>
+      </div>
+      <div>
+        <label class="block font-semibold">Date Range</label>
+        <input type="month" id="monthFilter" class="w-full p-2 border rounded" />
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto mb-10">
+      <table class="min-w-full bg-white border rounded">
+        <thead class="bg-blue-100 text-sm font-semibold">
+          <tr>
+            <th class="p-2 border">Week</th>
+            <th class="p-2 border">Yo-Yo</th>
+            <th class="p-2 border">Overall</th>
+            <th class="p-2 border">Remarks</th>
+          </tr>
+        </thead>
+        <tbody id="reportTableBody" class="text-sm"></tbody>
+      </table>
+    </div>
+
+    <!-- Chart -->
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Attribute Progress Chart</h2>
+      <canvas id="progressChart" height="150"></canvas>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    const supabase = createClient("https://sixwbibqadtvxiovdaqa.supabase.co", "YOUR_ANON_KEY");
+
+    const ATTRS = ["Speed", "Passing", "Shooting", "Stamina", "Dribbling"];
+
+    const centerFilter = document.getElementById("centerFilter");
+    const playerFilter = document.getElementById("playerFilter");
+    const monthFilter = document.getElementById("monthFilter");
+    const tableBody = document.getElementById("reportTableBody");
+    const chartCtx = document.getElementById("progressChart").getContext("2d");
+
+    let chart;
+
+    const GRADES = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
+
+    async function loadCenters() {
+      const { data: players } = await supabase.from("players").select("center");
+      const centers = [...new Set(players.map(p => p.center))];
+      centerFilter.innerHTML = '<option value="">All Centers</option>' + centers.map(c => `<option>${c}</option>`).join("");
+    }
+
+    centerFilter.addEventListener("change", async () => {
+      const center = centerFilter.value;
+      const { data: players } = await supabase.from("players").select("*").eq("center", center);
+      playerFilter.innerHTML = '<option value="">Select Player</option>' + players.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+    });
+
+    playerFilter.addEventListener("change", loadReports);
+    monthFilter.addEventListener("change", loadReports);
+
+    async function loadReports() {
+      const playerId = playerFilter.value;
+      const month = monthFilter.value;
+      if (!playerId || !month) return;
+
+      const { data: reports } = await supabase
+        .from("scouting_reports")
+        .select("*")
+        .eq("player_id", playerId)
+        .gte("week_date", `${month}-01`)
+        .lte("week_date", `${month}-31`)
+        .order("week_date");
+
+      renderTable(reports);
+      renderChart(reports);
+    }
+
+    function renderTable(reports) {
+      tableBody.innerHTML = reports.map(r => `
+        <tr>
+          <td class="p-2 border">${r.week_date}</td>
+          <td class="p-2 border">${r.ratings["Yo-Yo Test"] || "-"}</td>
+          <td class="p-2 border">${r.overall_grade || "-"}</td>
+          <td class="p-2 border">${r.remarks || "-"}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderChart(reports) {
+      if (chart) chart.destroy();
+
+      const labels = reports.map(r => r.week_date);
+      const datasets = ATTRS.map(attr => {
+        return {
+          label: attr,
+          data: reports.map(r => GRADES[r.ratings[attr]] ?? null),
+          borderWidth: 2,
+          fill: false,
+          tension: 0.2
+        };
+      });
+
+      chart = new Chart(chartCtx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, max: 5, title: { display: true, text: 'Grade Score (0–5)' } }
+          }
+        }
+      });
+    }
+
+    loadCenters();
+  </script>
+</body>
+</html>
