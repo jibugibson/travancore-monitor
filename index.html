@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Travancore Royals FC – Scouting System</title>
+  <title>Travancore Royals FC – Youth Player Performance Evaluation System</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -12,36 +12,22 @@
     <div class="flex flex-col items-center mb-6">
       <img src="assets/logo.png" class="w-24 mb-2" alt="Club Logo" />
       <h1 class="text-2xl font-bold text-blue-900 text-center">Travancore Royals FC</h1>
-      <p class="text-sm text-gray-600">Youth Scouting & Player Monitoring</p>
+      <p class="text-sm text-gray-600">Youth Player Performance Evaluation System</p>
     </div>
 
     <!-- Tab Navigation -->
     <div class="flex justify-center mb-6 space-x-4">
-      <button class="tab-btn px-4 py-2 bg-blue-700 text-white rounded active" data-tab="form">📝 Scouting Form</button>
-      <button class="tab-btn px-4 py-2 bg-blue-100 text-blue-700 rounded" data-tab="dashboard">📊 Dashboard</button>
+      <button class="tab-btn px-4 py-2 bg-blue-700 text-white rounded active" data-tab="tabForm">📝 Scouting Form</button>
+      <button class="tab-btn px-4 py-2 bg-blue-100 text-blue-700 rounded" data-tab="tabDashboard">📊 Dashboard</button>
     </div>
 
     <!-- Scouting Form Tab -->
-    <div id="form" class="tab-content">
-      <!-- Instructions -->
-      <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-6 rounded">
-        <h2 class="font-bold mb-2">Instructions for Scouts & Coaches</h2>
-        <ul class="list-disc pl-5 text-sm space-y-1">
-          <li>Select the correct <strong>Center</strong> to filter players.</li>
-          <li>Use the <strong>"Add New Player"</strong> only if the player does not exist.</li>
-          <li>Ensure same <strong>Name and DOB</strong> for progress tracking.</li>
-          <li>Select the correct <strong>Week Date</strong> for trend reports.</li>
-          <li>Enter <strong>A–F grades</strong> for each attribute.</li>
-          <li>Enter <strong>Yo-Yo Test Score</strong> as a number (e.g., 16.5).</li>
-        </ul>
-      </div>
-
-      <!-- Scouting form will be loaded here via JS -->
+    <div id="tabForm" class="tab-content">
       <div id="scoutingFormContainer" class="bg-white p-6 shadow rounded"></div>
     </div>
 
     <!-- Dashboard Tab -->
-    <div id="dashboard" class="tab-content hidden">
+    <div id="tabDashboard" class="tab-content hidden">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <select id="centerFilter" class="p-2 border rounded"></select>
         <select id="playerFilter" class="p-2 border rounded"><option>Select Center First</option></select>
@@ -64,19 +50,20 @@
     </div>
   </div>
 
-  <!-- JavaScript Modules (to be continued in next message) -->
-  <script type="module" src="main.js"></script>
+  <!-- JavaScript Tab Switch Logic -->
   <script>
-    // Tab switcher
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
         document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
-        document.querySelector(`#${tab}`).classList.remove("hidden");
+        document.getElementById(tab).classList.remove("hidden");
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("bg-blue-700", "text-white", "active"));
         btn.classList.add("bg-blue-700", "text-white", "active");
       });
     });
   </script>
+
+  <!-- Load your external logic (form + dashboard) -->
+  <script type="module" src="main.js"></script>
 </body>
 </html>
